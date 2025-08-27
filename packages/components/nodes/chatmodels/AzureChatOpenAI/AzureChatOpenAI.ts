@@ -207,6 +207,18 @@ class AzureChatOpenAI_ChatModels implements INode {
         const azureOpenAIApiDeploymentName = getCredentialParam('azureOpenAIApiDeploymentName', credentialData, nodeData)
         const azureOpenAIApiVersion = getCredentialParam('azureOpenAIApiVersion', credentialData, nodeData)
 
+        // DEBUG: Log Azure OpenAI configuration for debugging Invalid URL error
+        console.log('🔍 [AZURE DEBUG] Azure OpenAI Configuration:')
+        console.log('  - azureOpenAIApiKey:', azureOpenAIApiKey ? '***PRESENT***' : '❌ MISSING')
+        console.log('  - azureOpenAIApiInstanceName:', azureOpenAIApiInstanceName || '❌ MISSING/EMPTY')
+        console.log('  - azureOpenAIApiDeploymentName:', azureOpenAIApiDeploymentName || '❌ MISSING/EMPTY')
+        console.log('  - azureOpenAIApiVersion:', azureOpenAIApiVersion || '❌ MISSING/EMPTY')
+        console.log(
+            '  - Constructed endpoint would be: https://' + (azureOpenAIApiInstanceName || 'MISSING_INSTANCE') + '.openai.azure.com/'
+        )
+        console.log('  - credentialData keys:', Object.keys(credentialData || {}))
+        console.log('  - credentialData:', credentialData)
+
         const allowImageUploads = nodeData.inputs?.allowImageUploads as boolean
         const imageResolution = nodeData.inputs?.imageResolution as string
 
@@ -244,6 +256,15 @@ class AzureChatOpenAI_ChatModels implements INode {
             obj.reasoningEffort = reasoningEffort
         }
 
+        // DEBUG: Log final Azure OpenAI object configuration before creation
+        console.log('🔍 [AZURE DEBUG] Final Azure OpenAI Configuration Object:')
+        console.log('  - modelName:', obj.modelName)
+        console.log('  - azureOpenAIApiInstanceName:', obj.azureOpenAIApiInstanceName)
+        console.log('  - azureOpenAIApiDeploymentName:', obj.azureOpenAIApiDeploymentName)
+        console.log('  - azureOpenAIApiVersion:', obj.azureOpenAIApiVersion)
+        console.log('  - azureOpenAIBasePath:', obj.azureOpenAIBasePath)
+        console.log('  - Complete obj:', JSON.stringify(obj, null, 2))
+
         const multiModalOption: IMultiModalOption = {
             image: {
                 allowImageUploads: allowImageUploads ?? false,
@@ -251,9 +272,17 @@ class AzureChatOpenAI_ChatModels implements INode {
             }
         }
 
-        const model = new AzureChatOpenAI(nodeData.id, obj)
-        model.setMultiModalOption(multiModalOption)
-        return model
+        console.log('🔍 [AZURE DEBUG] Creating AzureChatOpenAI model with nodeData.id:', nodeData.id)
+        try {
+            const model = new AzureChatOpenAI(nodeData.id, obj)
+            console.log('✅ [AZURE DEBUG] AzureChatOpenAI model created successfully')
+            model.setMultiModalOption(multiModalOption)
+            return model
+        } catch (error) {
+            console.error('❌ [AZURE DEBUG] Error creating AzureChatOpenAI model:', error)
+            console.error('❌ [AZURE DEBUG] Error stack:', error.stack)
+            throw error
+        }
     }
 }
 
